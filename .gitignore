@@ -1,0 +1,4 @@
+.playwright-mcp/
+*.zip
+*.xpi
+*.log
