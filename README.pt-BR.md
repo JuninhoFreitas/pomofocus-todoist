@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-1. Instale o [Violentmonkey](https://violentmonkey.github.io) (ou Tampermonkey)
+1. Instale o [Violentmonkey](https://violentmonkey.github.io/get-it/) (ou Tampermonkey)
 2. Cole o script [`pomofocus-todoist.user.js`](./pomofocus-todoist.user.js) em um novo script
 3. Substitua `YOUR_TODOIST_API_TOKEN_HERE` pelo seu token do Todoist
 4. Abra [pomofocus.io/app](https://pomofocus.io/app) → clique no botão 🔴 **Todoist**
@@ -52,6 +52,10 @@ Tarefas sem duração recebem **1 pomodoro** por padrão.
 
 #### 2. Instale o script
 
+**Opção A — Instalação direta** *(se a extensão suportar)*:
+Clique no link raw e a extensão pedirá para confirmar a instalação.
+
+**Opção B — Manual**:
 1. Copie o conteúdo de [`pomofocus-todoist.user.js`](./pomofocus-todoist.user.js)
 2. Abra o Violentmonkey → **Dashboard** → **+** (Novo script)
 3. Cole e salve (`Ctrl+S`)
@@ -71,14 +75,14 @@ Substitua pelo seu token:
 
 > O Kiwi Browser suporta extensões do Chrome no Android, incluindo o Violentmonkey.
 
-1. Instale o [Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) pelo Google Play
+1. Instale o [Kiwi Browser](https://play.google.com/store/apps/details?id=secure.unblock.unlimited.proxy.snap.hotspot.shield) pelo Google Play
 2. Abra o Kiwi → menu (⋮) → **Extensões** → **+ (da loja)**
-3. Pesquise **Violentmonkey** → Instalar
+3. Pesquise **Violentmonkey** → Instalar → [Violentmonkey na Chrome Web Store](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegedbjlphkgodlihkgiej)
 4. Siga os passos 2–3 da seção Desktop acima
 
 ---
 
-## Como obter o Token da API do Todoist
+## Obtendo o Token da API do Todoist
 
 1. Acesse [todoist.com](https://todoist.com)
 2. Clique no seu avatar → **Configurações**
@@ -86,6 +90,26 @@ Substitua pelo seu token:
 4. Copie o **Token da API**
 
 > ⚠️ **Nunca compartilhe seu token.** Ele dá acesso total à sua conta do Todoist.
+
+---
+
+## Como funciona
+
+O script injeta um botão 🔴 **Todoist** no cabeçalho do Pomofocus. Ao clicar, abre um modal que:
+
+1. Busca suas tarefas ativas da API Todoist v1 (com paginação)
+2. Mostra tarefas com projeto, etiquetas, prioridade, data de vencimento e pomodoros calculados
+3. Permite importar, concluir, excluir ou editar tarefas sem sair do Pomofocus
+
+A criação de tarefas no Pomofocus usa o setter interno do React para ativar corretamente as atualizações de estado — sem hacks de DOM que quebram em atualizações.
+
+---
+
+## Requisitos
+
+- Um navegador que suporte extensões de userscript
+- Uma conta no [Todoist](https://todoist.com) (plano gratuito funciona)
+- Uma conta no [Pomofocus](https://pomofocus.io) **não é** necessária (funciona como visitante)
 
 ---
 

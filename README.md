@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-1. Install [Violentmonkey](https://violentmonkey.github.io) (or Tampermonkey)
+1. Install [Violentmonkey](https://violentmonkey.github.io/get-it/) (or Tampermonkey)
 2. [Click here to install the script](./pomofocus-todoist.user.js) *(or paste manually)*
 3. Set your Todoist API token in the `API_KEY` field
 4. Open [pomofocus.io/app](https://pomofocus.io/app) → click the 🔴 **Todoist** button
@@ -81,7 +81,7 @@ Replace the placeholder with your token:
 
 > Kiwi Browser supports Chrome extensions on Android, including Violentmonkey.
 
-1. Install [Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) from Google Play
+1. Install [Kiwi Browser](https://play.google.com/store/apps/details?id=secure.unblock.unlimited.proxy.snap.hotspot.shield) from Google Play
 2. Open Kiwi → menu (⋮) → **Extensions** → **+ (from store)**
 3. Search **Violentmonkey** → Install → [Violentmonkey on Chrome Web Store](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegedbjlphkgodlihkgiej)
 4. Follow steps 2–3 from the Desktop section above

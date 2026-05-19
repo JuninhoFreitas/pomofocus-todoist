@@ -8,7 +8,7 @@
 
 ## TL;DR
 
-1. Instala [Violentmonkey](https://violentmonkey.github.io) (o Tampermonkey)
+1. Instala [Violentmonkey](https://violentmonkey.github.io/get-it/) (o Tampermonkey)
 2. Pega el script [`pomofocus-todoist.user.js`](./pomofocus-todoist.user.js) en un nuevo script
 3. Reemplaza `YOUR_TODOIST_API_TOKEN_HERE` con tu token de Todoist
 4. Abre [pomofocus.io/app](https://pomofocus.io/app) → haz clic en el botón 🔴 **Todoist**
@@ -52,6 +52,10 @@ Las tareas sin duración usan **1 pomodoro** por defecto.
 
 #### 2. Instala el script
 
+**Opción A — Instalación directa** *(si la extensión la soporta)*:
+Haz clic en el enlace raw y la extensión te pedirá confirmar la instalación.
+
+**Opción B — Manual**:
 1. Copia el contenido de [`pomofocus-todoist.user.js`](./pomofocus-todoist.user.js)
 2. Abre Violentmonkey → **Dashboard** → **+** (Nuevo script)
 3. Pega y guarda (`Ctrl+S`)
@@ -71,9 +75,9 @@ Reemplázala con tu token:
 
 > Kiwi Browser soporta extensiones de Chrome en Android, incluyendo Violentmonkey.
 
-1. Instala [Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) desde Google Play
+1. Instala [Kiwi Browser](https://play.google.com/store/apps/details?id=secure.unblock.unlimited.proxy.snap.hotspot.shield) desde Google Play
 2. Abre Kiwi → menú (⋮) → **Extensiones** → **+ (de la tienda)**
-3. Busca **Violentmonkey** → Instalar
+3. Busca **Violentmonkey** → Instalar → [Violentmonkey en la Chrome Web Store](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegedbjlphkgodlihkgiej)
 4. Sigue los pasos 2–3 de la sección de Escritorio
 
 ---
@@ -86,6 +90,26 @@ Reemplázala con tu token:
 4. Copia el **Token de API**
 
 > ⚠️ **Nunca compartas tu token.** Da acceso completo a tu cuenta de Todoist.
+
+---
+
+## Cómo funciona
+
+El script inyecta un botón 🔴 **Todoist** en el encabezado de Pomofocus. Al hacer clic, abre un modal que:
+
+1. Obtiene tus tareas activas de la API Todoist v1 (con paginación)
+2. Muestra tareas con proyecto, etiquetas, prioridad, fecha de vencimiento y pomodoros calculados
+3. Te permite importar, completar, eliminar o editar tareas sin salir de Pomofocus
+
+La creación de tareas en Pomofocus utiliza el setter interno de React para activar correctamente las actualizaciones de estado — sin hacks de DOM que se rompan en actualizaciones.
+
+---
+
+## Requisitos
+
+- Un navegador que soporte extensiones de userscript
+- Una cuenta en [Todoist](https://todoist.com) (el plan gratuito funciona)
+- Una cuenta en [Pomofocus](https://pomofocus.io) **no es** requerida (funciona como invitado)
 
 ---
 
