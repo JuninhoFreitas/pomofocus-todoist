@@ -37,7 +37,7 @@
   // Replace with your Todoist API token:
   // Todoist → Settings → Integrations → Developer → API token
   const API_KEY = 'YOUR_TODOIST_API_TOKEN_HERE';
-  const BASE    = 'https://api.todoist.com/api/v1'; // REST v2 is deprecated
+  const BASE = 'https://api.todoist.com/api/v1'; // REST v2 is deprecated
 
   // ─── PRIORITY MAP (Todoist: 4=P1 urgent … 1=P4 normal) ────────────────────
   const PRIORITY = {
@@ -98,12 +98,12 @@
     return results;
   }
 
-  const fetchTasks    = ()         => fetchAll('/tasks');
-  const fetchProjects = ()         => fetchAll('/projects');
-  const fetchLabels   = ()         => fetchAll('/labels');
-  const completeTask  = (id)       => api('POST',   `/tasks/${id}/close`);
-  const deleteTask    = (id)       => api('DELETE', `/tasks/${id}`);
-  const updateTask    = (id, data) => api('POST',   `/tasks/${id}`, data);
+  const fetchTasks = () => fetchAll('/tasks');
+  const fetchProjects = () => fetchAll('/projects');
+  const fetchLabels = () => fetchAll('/labels');
+  const completeTask = (id) => api('POST', `/tasks/${id}/close`);
+  const deleteTask = (id) => api('DELETE', `/tasks/${id}`);
+  const updateTask = (id, data) => api('POST', `/tasks/${id}`, data);
 
   // ─── POMOFOCUS INTEGRATION ─────────────────────────────────────────────────
 
@@ -208,14 +208,14 @@
   }
 
   // ─── MODAL STATE ───────────────────────────────────────────────────────────
-  let modal       = null;
-  let allTasks    = [];
+  let modal = null;
+  let allTasks = [];
   let allProjects = [];
-  let allLabels   = [];
-  let filterText  = '';
-  let filterPrio  = 0;
-  let filterProj  = '';
-  let filterDue   = false;
+  let allLabels = [];
+  let filterText = '';
+  let filterPrio = 0;
+  let filterProj = '';
+  let filterDue = false;
 
   // ─── MODAL ─────────────────────────────────────────────────────────────────
   function openModal() {
@@ -302,8 +302,8 @@
       onclick() {
         filterDue = !filterDue;
         dueBtn.style.background = filterDue ? '#ba4949' : '#3a3c42';
-        dueBtn.style.color      = filterDue ? '#fff'    : '#aaa';
-        dueBtn.style.border     = filterDue ? '1px solid #ba4949' : '1px solid #555';
+        dueBtn.style.color = filterDue ? '#fff' : '#aaa';
+        dueBtn.style.border = filterDue ? '1px solid #ba4949' : '1px solid #555';
         renderList();
       },
     }, '📅 Today & Overdue');
@@ -321,8 +321,48 @@
       style: {
         padding: '10px 20px', borderTop: '1px solid #3a3c42',
         color: '#888', fontSize: '12px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: '10px',
       },
-    }, 'Loading…');
+    });
+
+    const footerText = el('span', {}, 'Loading…');
+    footer.appendChild(footerText);
+
+    const importAllBtn = styledBtn('Import All Filtered', '#45ca69', async () => {
+      importAllBtn.disabled = true;
+      importAllBtn.textContent = '…';
+      const cards = document.querySelectorAll('#ptd-task-list [data-task-id]');
+      let imported = 0;
+      let failed = 0;
+
+      for (const card of cards) {
+        const taskId = card.getAttribute('data-task-id');
+        const task = allTasks.find((t) => t.id === taskId);
+        if (!task) continue;
+
+        const pomos = calcPomodoros(task);
+        try {
+          await addToPomofocus(task.content, pomos);
+          imported++;
+          importAllBtn.textContent = `${imported}/${cards.length}`;
+        } catch (e) {
+          failed++;
+          console.error('[PTD] Import failed:', task.content, e);
+        }
+        await sleep(150);
+      }
+
+      importAllBtn.textContent = imported > 0 ? `✓ ${imported} imported${failed ? `, ${failed} failed` : ''}` : (failed ? `✗ ${failed} failed` : '✗ None');
+      importAllBtn.style.background = imported > 0 ? '#4caf50' : '#f44336';
+      setTimeout(() => {
+        importAllBtn.textContent = 'Import All Filtered';
+        importAllBtn.style.background = '#45ca69';
+        importAllBtn.disabled = false;
+      }, 3000);
+    });
+    footer.appendChild(importAllBtn);
+    footer._textEl = footerText;
 
     dialog.appendChild(header);
     dialog.appendChild(filters);
@@ -391,9 +431,9 @@
 
   function buildCard(task) {
     const project = allProjects.find((p) => p.id === task.project_id);
-    const labels  = (task.labels || []);
-    const pomos   = calcPomodoros(task);
-    const prio    = PRIORITY[task.priority] || PRIORITY[1];
+    const labels = (task.labels || []);
+    const pomos = calcPomodoros(task);
+    const prio = PRIORITY[task.priority] || PRIORITY[1];
 
     const card = el('div', {
       'data-task-id': task.id,
@@ -451,7 +491,7 @@
     // Due date (API v1: due.date may be "2026-05-19T07:30:00" or "2026-05-19")
     if (task.due) {
       const dateStr = (task.due.date || '').split('T')[0];
-      const today   = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0];
       const overdue = dateStr && dateStr < today;
       const display = task.due.is_recurring ? `🔁 ${dateStr}` : `📅 ${dateStr}`;
       meta.appendChild(el('span', {
@@ -647,11 +687,146 @@
 
   function setFooter(text) {
     const f = document.getElementById('ptd-footer');
-    if (f) f.textContent = text;
+    if (f && f._textEl) f._textEl.textContent = text;
   }
 
   function closeModal() {
     if (modal) { modal.remove(); modal = null; }
+  }
+
+  // ─── FLOATING TIMER (Picture-in-Picture) ───────────────────────────────────
+  // Uses the Document Picture-in-Picture API — a real always-on-top window,
+  // detached from the tab, that floats over your desktop. Chrome/Edge/Opera
+  // only (as of 2025). Falls back to a plain popup on unsupported browsers,
+  // which will NOT stay on top of other windows.
+  let pipWindow = null;
+  let pipTitleObserver = null;
+
+  /** Extracts "MM:SS" from the document title, which Pomofocus keeps live-updated. */
+  function readTimerFromTitle() {
+    const m = document.title.match(/(\d{1,2}:\d{2})/);
+    return m ? m[1] : '--:--';
+  }
+
+  /** Best-effort: finds which session tab (Pomodoro/Short Break/Long Break) is active. */
+  function readActiveSessionLabel() {
+    const labels = ['Pomodoro', 'Short Break', 'Long Break'];
+    for (const btn of document.querySelectorAll('button')) {
+      const text = btn.textContent.trim();
+      if (labels.includes(text)) {
+        const cls = btn.className || '';
+        if (/active|selected/i.test(cls)) return text;
+      }
+    }
+    return '';
+  }
+
+  /** Finds the real Start/Pause toggle button on the Pomofocus page. */
+  function findStartPauseButton() {
+    return Array.from(document.querySelectorAll('button'))
+      .find((b) => /^(start|pause)$/i.test(b.textContent.trim()));
+  }
+
+  /** Finds the real Skip button on the Pomofocus page (best-effort — no confirmed selector). */
+  function findSkipButton() {
+    return document.querySelector('[aria-label*="skip" i], [title*="skip" i]')
+      || Array.from(document.querySelectorAll('button')).find((b) => /skip/i.test(b.textContent.trim()));
+  }
+
+  function clickStartPause() {
+    const btn = findStartPauseButton();
+    if (!btn) { alert('Start/Pause button not found on the page.'); return; }
+    btn.click();
+  }
+
+  function clickSkip() {
+    const btn = findSkipButton();
+    if (!btn) { alert('Skip button not found — Pomofocus may not expose one, or its selector differs. Right-click the skip icon on the page → Inspect, and send me the element so I can fix the selector.'); return; }
+    btn.click();
+  }
+
+  async function openFloatingTimer() {
+    if (pipWindow) { pipWindow.focus(); return; }
+
+    if (!('documentPictureInPicture' in window)) {
+      alert('Your browser doesn\'t support floating always-on-top windows (needs Chrome/Edge/Opera). Opening a regular popup instead — it won\'t float above other apps.');
+      const w = window.open('', 'ptd-timer', 'width=220,height=120,alwaysOnTop=yes');
+      if (!w) { alert('Popup blocked — allow popups for this site.'); return; }
+      buildPipContent(w.document, w);
+      return;
+    }
+
+    pipWindow = await documentPictureInPicture.requestWindow({ width: 220, height: 130 });
+    buildPipContent(pipWindow.document, pipWindow);
+    pipWindow.addEventListener('pagehide', () => {
+      if (pipTitleObserver) { pipTitleObserver.disconnect(); pipTitleObserver = null; }
+      pipWindow = null;
+    });
+  }
+
+  function buildPipContent(doc, win) {
+    doc.body.style.margin = '0';
+    doc.body.style.background = '#1e1f23';
+    doc.body.style.height = '100vh';
+    doc.body.style.display = 'flex';
+    doc.body.style.alignItems = 'center';
+    doc.body.style.justifyContent = 'center';
+    doc.body.style.fontFamily = 'Arial, sans-serif';
+
+    const root = doc.createElement('div');
+    root.style.textAlign = 'center';
+    root.style.color = '#fff';
+
+    const statusEl = doc.createElement('div');
+    statusEl.id = 'ptd-pip-status';
+    statusEl.style.cssText = 'font-size:13px;color:#aaa;margin-bottom:4px;letter-spacing:0.5px;';
+
+    const timeEl = doc.createElement('div');
+    timeEl.id = 'ptd-pip-time';
+    timeEl.style.cssText = 'font-size:44px;font-weight:700;font-family:monospace;';
+
+    const controls = doc.createElement('div');
+    controls.style.cssText = 'display:flex;gap:6px;justify-content:center;margin-top:6px;';
+
+    function pipBtn(text, onclick) {
+      const b = doc.createElement('button');
+      b.textContent = text;
+      b.style.cssText = 'background:#3a3c42;color:#fff;border:none;border-radius:6px;' +
+        'padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;';
+      b.addEventListener('click', onclick);
+      return b;
+    }
+
+    const startPauseBtn = pipBtn('▶ Start', clickStartPause);
+    const skipBtn = pipBtn('⏭ Skip', clickSkip);
+    controls.appendChild(startPauseBtn);
+    controls.appendChild(skipBtn);
+
+    root.appendChild(statusEl);
+    root.appendChild(timeEl);
+    root.appendChild(controls);
+    doc.body.appendChild(root);
+
+    function sync() {
+      timeEl.textContent = readTimerFromTitle();
+      statusEl.textContent = readActiveSessionLabel();
+      const realBtn = findStartPauseButton();
+      if (realBtn) {
+        const isPaused = /^pause$/i.test(realBtn.textContent.trim());
+        startPauseBtn.textContent = isPaused ? '⏸ Pause' : '▶ Start';
+      }
+    }
+    sync();
+
+    // document.title text changes each second Pomofocus is running — observe it.
+    const titleNode = document.querySelector('title');
+    if (titleNode) {
+      pipTitleObserver = new MutationObserver(sync);
+      pipTitleObserver.observe(titleNode, { childList: true });
+    }
+    // Fallback poll in case the title observer misses something (tab throttling, etc).
+    const pollId = win.setInterval(sync, 1000);
+    win.addEventListener('pagehide', () => win.clearInterval(pollId));
   }
 
   // ─── INJECT HEADER BUTTON ──────────────────────────────────────────────────
@@ -675,6 +850,19 @@
       onclick: openModal,
     }, '🔴 Todoist');
 
+    const floatBtn = el('button', {
+      id: 'ptd-float-btn',
+      title: 'Float timer in a small always-on-top window (Chrome/Edge)',
+      style: {
+        background: '#3a3c42', color: '#fff', border: 'none',
+        borderRadius: '8px', padding: '6px 12px', marginRight: '6px',
+        cursor: 'pointer', fontSize: '13px', fontWeight: '700',
+        display: 'inline-flex', alignItems: 'center', gap: '5px',
+      },
+      onclick: openFloatingTimer,
+    }, '🪟 Float');
+
+    container.insertBefore(floatBtn, container.firstChild);
     container.insertBefore(btn, container.firstChild);
   }
 
@@ -696,3 +884,4 @@
   }).observe(document.body, { childList: true, subtree: false });
 
 })();
+
